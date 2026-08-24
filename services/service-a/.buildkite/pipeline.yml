@@ -1,21 +1,3 @@
-# =============================================================================
-# DOWNSTREAM PIPELINE: service-a
-# =============================================================================
-# This pipeline has NO GitHub webhook of its own. It is only ever started
-# by the dispatcher pipeline's `trigger` step (see /.buildkite/pipeline.yml
-# and /.buildkite/scripts/generate-trigger-steps.py at the repo root).
-#
-# In the Buildkite dashboard, this is configured as its own pipeline
-# (slug: "service-a") with:
-#   - GitHub App/webhook integration: left DISABLED
-#   - "Steps" pointing at this file's path: services/service-a/.buildkite/pipeline.yml
-#   - Build skipping/branch filters set however this service needs them
-#
-# Everything below this point is a completely ordinary Buildkite pipeline —
-# there is nothing dispatcher-specific about it. That's the point: once a
-# pipeline is triggered, it behaves like any other pipeline would.
-# =============================================================================
-
 steps:
   - label: ":python: Lint"
     command: "echo 'pretend: flake8 services/service-a'"
