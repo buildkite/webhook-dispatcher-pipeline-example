@@ -80,6 +80,17 @@ services/service-a:service-a-pipeline
 services/service-b:service-b-pipeline
 ```
 
+## Adding a service
+
+Each line in `.buildkite/routes.conf` maps a watched path to a downstream pipeline:
+
+To add a service:
+
+1. Add a `<watched-path>:<pipeline-slug>` line to `routes.conf`.
+2. Create a Buildkite pipeline with that slug, using this repo, and upload the steps from the service's `.buildkite/pipeline.yml`.
+
+If you're running this example in your own organization, create `service-a-pipeline` and `service-b-pipeline` this way first. Otherwise the dispatcher's trigger steps will fail.
+
 ## License
 
 See [LICENSE](LICENSE) (MIT)
