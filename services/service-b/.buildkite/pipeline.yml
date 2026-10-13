@@ -1,14 +1,3 @@
-# =============================================================================
-# DOWNSTREAM PIPELINE: service-b
-# =============================================================================
-# Same story as service-a's pipeline.yml — no webhook, only ever started
-# via a `trigger` step from the dispatcher pipeline.
-#
-# This one reads the env the dispatcher forwarded (see
-# scripts/generate-trigger-steps.py -> build.env) just to show that the
-# downstream pipeline has access to context about why it was triggered.
-# =============================================================================
-
 steps:
   - label: ":mag: Show trigger context"
     command: |

@@ -1,27 +1,4 @@
-# =============================================================================
-# DISPATCHER PIPELINE
-# =============================================================================
-# This is the ONLY Buildkite pipeline in this repository that has a GitHub
-# webhook attached to it. Every push/PR event from GitHub lands here first.
-#
-# It doesn't build anything itself. Its only job is to:
-#   1. Look at what changed (diff or branch)
-#   2. Decide which downstream pipelines care about that change
-#   3. Dynamically upload `trigger` steps for exactly those pipelines
-#
-# See README.md for the full explanation of why this pattern exists and how
-# to adapt the routing logic in scripts/generate-trigger-steps.py.
-# =============================================================================
-
 steps:
   - label: ":mag: Determine downstream pipelines"
     key: "determine-triggers"
-    command: |
-      pip install --quiet pyyaml
-      .buildkite/scripts/generate-trigger-steps.py | buildkite-agent pipeline upload
-    plugins:
-      - docker#v5.11.0:
-          image: "python:3.12-slim"
-          propagate-environment: true
-    agents:
-      queue: "default"
+    command: ".buildkite/scripts/generate-trigger-steps.sh | buildkite-agent pipeline upload"
