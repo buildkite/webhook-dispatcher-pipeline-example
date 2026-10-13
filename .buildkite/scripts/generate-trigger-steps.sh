@@ -50,6 +50,7 @@ triggered_any=false
 
 # "|| [[ -n ... ]]" processes a final line even if routes.conf has no trailing newline.
 while IFS=':' read -r watched_path pipeline_slug || [[ -n "${watched_path}" ]]; do
+  watched_path="${watched_path%$'\r'}"
   [[ -z "${watched_path}" || "${watched_path}" =~ ^# ]] && continue
   pipeline_slug="${pipeline_slug%$'\r'}"   # tolerate CRLF line endings
 
