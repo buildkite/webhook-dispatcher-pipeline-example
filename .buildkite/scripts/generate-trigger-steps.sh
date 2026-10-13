@@ -21,7 +21,13 @@ yaml_dq_escape() {
   printf '%s' "$s"
 }
 
+# Escape ERE metacharacters so a string can be matched literally by grep -E.
+regex_escape() {
+  printf '%s' "$1" | sed 's/[.[\*^$()+?{|\\]/\\&/g'
+}
+
 MESSAGE_ESCAPED="$(yaml_dq_escape "${BUILDKITE_MESSAGE:-}")"
+BRANCH_ESCAPED="$(yaml_dq_escape "${CURRENT_BRANCH}")"
 
 if [[ -n "${BUILDKITE_PULL_REQUEST:-}" && "${BUILDKITE_PULL_REQUEST}" != "false" ]]; then
   git fetch --quiet origin "${BASE_BRANCH}" || true
@@ -50,7 +56,7 @@ while IFS=':' read -r watched_path pipeline_slug || [[ -n "${watched_path}" ]]; 
   should_trigger=false
   if [[ -z "${CHANGED_FILES}" ]]; then
     should_trigger=true
-  elif echo "${CHANGED_FILES}" | grep -qE "^${watched_path}/"; then
+  elif echo "${CHANGED_FILES}" | grep -E "^$(regex_escape "${watched_path}")/" >/dev/null; then
     should_trigger=true
   fi
 
@@ -62,7 +68,7 @@ while IFS=':' read -r watched_path pipeline_slug || [[ -n "${watched_path}" ]]; 
     build:
       message: "${MESSAGE_ESCAPED}"
       commit: "${BUILDKITE_COMMIT:-HEAD}"
-      branch: "${CURRENT_BRANCH}"
+      branch: "${BRANCH_ESCAPED}"
       env:
         DISPATCHED_FROM_BUILD: "${BUILDKITE_BUILD_URL:-unknown}"
     async: false
