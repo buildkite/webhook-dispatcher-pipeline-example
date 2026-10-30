@@ -29,11 +29,18 @@ regex_escape() {
 MESSAGE_ESCAPED="$(yaml_dq_escape "${BUILDKITE_MESSAGE:-}")"
 BRANCH_ESCAPED="$(yaml_dq_escape "${CURRENT_BRANCH}")"
 
+TRIGGER_ALL=false
+
 if [[ -n "${BUILDKITE_PULL_REQUEST:-}" && "${BUILDKITE_PULL_REQUEST}" != "false" ]]; then
   git fetch --quiet origin "${BASE_BRANCH}" || true
   DIFF_RANGE="origin/${BASE_BRANCH}...HEAD"
 elif [[ "${CURRENT_BRANCH}" == "${DEFAULT_BRANCH}" ]]; then
   DIFF_RANGE="HEAD~1..HEAD"
+  # A push to the default branch can contain several commits, and Buildkite
+  # doesn't expose the push's start commit, so build every service rather
+  # than risk skipping one.
+  TRIGGER_ALL=true
+  echo "# default branch build: triggering all downstream pipelines" >&2
 else
   git fetch --quiet origin "${DEFAULT_BRANCH}" || true
   DIFF_RANGE="origin/${DEFAULT_BRANCH}...HEAD"
@@ -41,7 +48,7 @@ fi
 
 CHANGED_FILES="$(git diff --name-only "${DIFF_RANGE}" 2>/dev/null || true)"
 
-if [[ -z "${CHANGED_FILES}" ]]; then
+if [[ "${TRIGGER_ALL}" == false && -z "${CHANGED_FILES}" ]]; then
   echo "# warning: could not determine changed files (range: ${DIFF_RANGE}); triggering all downstream pipelines" >&2
 fi
 
@@ -55,7 +62,7 @@ while IFS=':' read -r watched_path pipeline_slug || [[ -n "${watched_path}" ]]; 
   pipeline_slug="${pipeline_slug%$'\r'}"   # tolerate CRLF line endings
 
   should_trigger=false
-  if [[ -z "${CHANGED_FILES}" ]]; then
+  if [[ "${TRIGGER_ALL}" == true || -z "${CHANGED_FILES}" ]]; then
     should_trigger=true
   elif echo "${CHANGED_FILES}" | grep -E "^$(regex_escape "${watched_path}")/" >/dev/null; then
     should_trigger=true
